@@ -19,6 +19,13 @@ Server = https://devluanpereira.github.io/oxsystemsos-repo/$arch
 
 Packages and repo DB files can be added under `x86_64/`.
 
+## Calamares package
+
+This repository publishes `calamares` for OXSystemsOS live media.
+
+- Manual build trigger: GitHub Actions workflow `Build Calamares Package`
+- Output package path: `x86_64/calamares-*.pkg.tar.zst`
+
 ## Signing roadmap
 
 This repository supports optional signing in CI via secrets:

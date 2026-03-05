@@ -1,0 +1,61 @@
+name: Build Calamares Package
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * 1"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build calamares in Arch container
+        run: |
+          set -euo pipefail
+          mkdir -p x86_64
+
+          docker run --rm \
+            -v "$PWD:/repo" \
+            archlinux:latest \
+            bash -lc '
+              set -euo pipefail
+              pacman-key --init
+              pacman-key --populate archlinux
+              pacman -Sy --noconfirm archlinux-keyring
+              pacman -Syu --noconfirm --disable-download-timeout
+              pacman -S --noconfirm base-devel git sudo pacman-contrib
+
+              useradd -m builder
+              echo "builder ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/builder
+              chmod 0440 /etc/sudoers.d/builder
+
+              su - builder -c "cd /tmp && rm -rf calamares && git clone --depth 1 https://aur.archlinux.org/calamares.git && cd calamares && makepkg -s --noconfirm --needed"
+
+              cp -f /tmp/calamares/calamares-*.pkg.tar.zst /repo/x86_64/
+              rm -f /repo/x86_64/*-debug-*.pkg.tar.zst || true
+
+              cd /repo/x86_64
+              repo-add -R oxsystemsos.db.tar.gz ./*.pkg.tar.zst
+              ln -sf oxsystemsos.db.tar.gz oxsystemsos.db
+              ln -sf oxsystemsos.files.tar.gz oxsystemsos.files
+            '
+
+      - name: Commit package updates
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add x86_64/
+          if git diff --cached --quiet; then
+            echo "No package changes."
+            exit 0
+          fi
+          git commit -m "chore(repo): update calamares package"
+          git push
