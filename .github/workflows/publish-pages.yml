@@ -1,0 +1,58 @@
+name: Publish OXSystemsOS pacman repo
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure repository layout
+        run: |
+          set -euo pipefail
+          mkdir -p x86_64
+
+      - name: Rebuild repository database when packages exist
+        run: |
+          set -euo pipefail
+          if compgen -G "x86_64/*.pkg.tar.zst" > /dev/null; then
+            docker run --rm \
+              -v "$PWD:/repo" \
+              -w /repo \
+              archlinux:latest \
+              bash -lc '
+                set -euo pipefail
+                pacman -Sy --noconfirm pacman-contrib
+                repo-add -R x86_64/oxsystemsos.db.tar.gz x86_64/*.pkg.tar.zst
+              '
+          else
+            echo "No *.pkg.tar.zst packages found in x86_64/. Skipping repo-add."
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
