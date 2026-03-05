@@ -1,0 +1,20 @@
+pkgname=oxsystemsos-keyring
+pkgver=2026.03
+pkgrel=1
+pkgdesc="OXSystemsOS pacman keyring (scaffold)"
+arch=('any')
+url="https://github.com/devluanpereira/oxsystemsos-repo"
+license=('GPL-3.0-or-later')
+depends=('pacman')
+source=(
+  'oxsystemsos.gpg'
+  'oxsystemsos-trusted'
+  'oxsystemsos-revoked'
+)
+sha256sums=('SKIP' 'SKIP' 'SKIP')
+
+package() {
+  install -Dm644 oxsystemsos.gpg "${pkgdir}/usr/share/pacman/keyrings/oxsystemsos.gpg"
+  install -Dm644 oxsystemsos-trusted "${pkgdir}/usr/share/pacman/keyrings/oxsystemsos-trusted"
+  install -Dm644 oxsystemsos-revoked "${pkgdir}/usr/share/pacman/keyrings/oxsystemsos-revoked"
+}

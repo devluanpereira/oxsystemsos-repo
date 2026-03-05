@@ -26,6 +26,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Import repository signing key (optional)
+        if: ${{ secrets.OX_REPO_GPG_PRIVATE_KEY != '' }}
+        run: |
+          set -euo pipefail
+          export GNUPGHOME="${RUNNER_TEMP}/gnupg"
+          mkdir -p "${GNUPGHOME}"
+          chmod 700 "${GNUPGHOME}"
+          printf '%s\n' "${{ secrets.OX_REPO_GPG_PRIVATE_KEY }}" | gpg --batch --import
+          echo "GNUPGHOME=${GNUPGHOME}" >> "${GITHUB_ENV}"
+
       - name: Ensure repository layout
         run: |
           set -euo pipefail
@@ -47,6 +57,43 @@ jobs:
           else
             echo "No *.pkg.tar.zst packages found in x86_64/. Skipping repo-add."
           fi
+
+      - name: Sign repository database files (optional)
+        if: ${{ secrets.OX_REPO_GPG_PRIVATE_KEY != '' && secrets.OX_REPO_GPG_KEY_ID != '' }}
+        env:
+          GPG_KEY_ID: ${{ secrets.OX_REPO_GPG_KEY_ID }}
+          GPG_PASSPHRASE: ${{ secrets.OX_REPO_GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+
+          sign_db() {
+            local file="$1"
+            if [[ ! -f "${file}" ]]; then
+              return 0
+            fi
+
+            local -a cmd=(
+              gpg
+              --batch
+              --yes
+              --pinentry-mode
+              loopback
+              --local-user
+              "${GPG_KEY_ID}"
+            )
+
+            if [[ -n "${GPG_PASSPHRASE:-}" ]]; then
+              cmd+=(--passphrase "${GPG_PASSPHRASE}")
+            fi
+
+            cmd+=(--detach-sign --output "${file}.sig" "${file}")
+            "${cmd[@]}"
+          }
+
+          sign_db x86_64/oxsystemsos.db
+          sign_db x86_64/oxsystemsos.db.tar.gz
+          sign_db x86_64/oxsystemsos.files
+          sign_db x86_64/oxsystemsos.files.tar.gz
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
