@@ -48,6 +48,9 @@ jobs:
             echo "No *.pkg.tar.zst packages found in x86_64/. Skipping repo-add."
           fi
 
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
