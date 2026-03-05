@@ -1,9 +1,12 @@
-name: Build Calamares Package
+name: Build Installer Packages
 
 on:
   workflow_dispatch:
   schedule:
     - cron: "0 4 * * 1"
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -16,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build calamares in Arch container
+      - name: Build installer packages in Arch container
         run: |
           set -euo pipefail
           mkdir -p x86_64
@@ -29,20 +32,27 @@ jobs:
               pacman-key --init
               pacman-key --populate archlinux
               pacman -Sy --noconfirm archlinux-keyring
-              pacman -Syu --noconfirm --disable-download-timeout
-              pacman -S --noconfirm base-devel git sudo pacman-contrib
+              pacman -S --noconfirm --needed \
+                base-devel git cmake ninja extra-cmake-modules \
+                qt6-tools qt6-translations kcoreaddons kpmcore \
+                libpwquality qt6-declarative qt6-svg yaml-cpp python \
+                zstd pacman-contrib
 
               useradd -m builder
-              echo "builder ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/builder
-              chmod 0440 /etc/sudoers.d/builder
+              cp -a /repo/packages/calamares /tmp/
+              cp -a /repo/packages/oxsystemsos-calamares-config /tmp/
+              chown -R builder:builder /tmp/calamares /tmp/oxsystemsos-calamares-config
 
-              su - builder -c "cd /tmp && rm -rf calamares && git clone --depth 1 https://aur.archlinux.org/calamares.git && cd calamares && makepkg -s --noconfirm --needed"
+              su - builder -c "cd /tmp/calamares && makepkg -sf --noconfirm --cleanbuild"
+              su - builder -c "cd /tmp/oxsystemsos-calamares-config && makepkg --nodeps -f --noconfirm --cleanbuild"
 
+              rm -f /repo/x86_64/calamares-*.pkg.tar.zst /repo/x86_64/calamares-debug-*.pkg.tar.zst || true
               cp -f /tmp/calamares/calamares-*.pkg.tar.zst /repo/x86_64/
+              cp -f /tmp/oxsystemsos-calamares-config/oxsystemsos-calamares-config-*.pkg.tar.zst /repo/x86_64/
               rm -f /repo/x86_64/*-debug-*.pkg.tar.zst || true
 
               cd /repo/x86_64
-              repo-add -R oxsystemsos.db.tar.gz ./*.pkg.tar.zst
+              repo-add -R oxsystemsos.db.tar.gz calamares-*.pkg.tar.zst oxsystemsos-calamares-config-*.pkg.tar.zst
               ln -sf oxsystemsos.db.tar.gz oxsystemsos.db
               ln -sf oxsystemsos.files.tar.gz oxsystemsos.files
             '
@@ -57,5 +67,5 @@ jobs:
             echo "No package changes."
             exit 0
           fi
-          git commit -m "chore(repo): update calamares package"
+          git commit -m "chore(repo): update installer packages"
           git push

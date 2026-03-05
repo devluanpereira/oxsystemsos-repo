@@ -1,0 +1,29 @@
+pkgname=oxsystemsos-calamares-config
+pkgver=2026.03
+pkgrel=1
+pkgdesc="OXSystemsOS branding and configuration for Calamares"
+arch=('any')
+url="https://github.com/devluanpereira/oxsystemsos-repo"
+license=('GPL-3.0-or-later')
+depends=('calamares')
+source=(
+  'settings.conf'
+  'unpackfsc.conf'
+  'branding.desc'
+  'show.qml'
+  'banner.png'
+  'welcome.png'
+  'ox-logo.svg'
+)
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
+
+package() {
+  install -Dm644 settings.conf "${pkgdir}/etc/calamares/settings.conf"
+  install -Dm644 unpackfsc.conf "${pkgdir}/etc/calamares/modules/unpackfsc.conf"
+
+  install -Dm644 branding.desc "${pkgdir}/etc/calamares/branding/oxsystemsos/branding.desc"
+  install -Dm644 show.qml "${pkgdir}/etc/calamares/branding/oxsystemsos/show.qml"
+  install -Dm644 banner.png "${pkgdir}/etc/calamares/branding/oxsystemsos/banner.png"
+  install -Dm644 welcome.png "${pkgdir}/etc/calamares/branding/oxsystemsos/welcome.png"
+  install -Dm644 ox-logo.svg "${pkgdir}/etc/calamares/branding/oxsystemsos/ox-logo.svg"
+}

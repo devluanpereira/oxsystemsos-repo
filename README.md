@@ -19,12 +19,18 @@ Server = https://devluanpereira.github.io/oxsystemsos-repo/$arch
 
 Packages and repo DB files can be added under `x86_64/`.
 
-## Calamares package
+## Installer packages
 
-This repository publishes `calamares` for OXSystemsOS live media.
+This repository publishes two installer packages:
 
-- Manual build trigger: GitHub Actions workflow `Build Calamares Package`
-- Output package path: `x86_64/calamares-*.pkg.tar.zst`
+- `calamares`: installer runtime used by OXSystemsOS live media.
+- `oxsystemsos-calamares-config`: OXSystemsOS branding/runtime config
+  (`/etc/calamares/*`), fully decoupled from the ISO source tree.
+
+- Manual/automatic build: GitHub Actions workflow `Build Installer Packages`
+- Output package paths:
+  - `x86_64/calamares-*.pkg.tar.zst`
+  - `x86_64/oxsystemsos-calamares-config-*.pkg.tar.zst`
 
 ## Signing roadmap
 
