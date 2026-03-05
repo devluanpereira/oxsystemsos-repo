@@ -18,6 +18,10 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      OX_REPO_GPG_PRIVATE_KEY: ${{ secrets.OX_REPO_GPG_PRIVATE_KEY }}
+      OX_REPO_GPG_KEY_ID: ${{ secrets.OX_REPO_GPG_KEY_ID }}
+      OX_REPO_GPG_PASSPHRASE: ${{ secrets.OX_REPO_GPG_PASSPHRASE }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -27,13 +31,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Import repository signing key (optional)
-        if: ${{ secrets.OX_REPO_GPG_PRIVATE_KEY != '' }}
+        if: ${{ env.OX_REPO_GPG_PRIVATE_KEY != '' }}
         run: |
           set -euo pipefail
           export GNUPGHOME="${RUNNER_TEMP}/gnupg"
           mkdir -p "${GNUPGHOME}"
           chmod 700 "${GNUPGHOME}"
-          printf '%s\n' "${{ secrets.OX_REPO_GPG_PRIVATE_KEY }}" | gpg --batch --import
+          printf '%s\n' "${OX_REPO_GPG_PRIVATE_KEY}" | gpg --batch --import
           echo "GNUPGHOME=${GNUPGHOME}" >> "${GITHUB_ENV}"
 
       - name: Ensure repository layout
@@ -59,10 +63,10 @@ jobs:
           fi
 
       - name: Sign repository database files (optional)
-        if: ${{ secrets.OX_REPO_GPG_PRIVATE_KEY != '' && secrets.OX_REPO_GPG_KEY_ID != '' }}
+        if: ${{ env.OX_REPO_GPG_PRIVATE_KEY != '' && env.OX_REPO_GPG_KEY_ID != '' }}
         env:
-          GPG_KEY_ID: ${{ secrets.OX_REPO_GPG_KEY_ID }}
-          GPG_PASSPHRASE: ${{ secrets.OX_REPO_GPG_PASSPHRASE }}
+          GPG_KEY_ID: ${{ env.OX_REPO_GPG_KEY_ID }}
+          GPG_PASSPHRASE: ${{ env.OX_REPO_GPG_PASSPHRASE }}
         run: |
           set -euo pipefail
 
