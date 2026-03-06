@@ -1,6 +1,6 @@
 pkgname=oxsystemsos-calamares-config
 pkgver=2026.03
-pkgrel=2
+pkgrel=3
 pkgdesc="OXSystemsOS branding and configuration for Calamares"
 arch=('any')
 url="https://github.com/devluanpereira/oxsystemsos-repo"
@@ -21,7 +21,7 @@ source=(
   'welcome.png'
   'ox-logo.svg'
 )
-sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 
 package() {
   install -Dm644 settings.conf "${pkgdir}/etc/calamares/settings.conf"
