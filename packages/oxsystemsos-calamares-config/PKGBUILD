@@ -1,6 +1,6 @@
 pkgname=oxsystemsos-calamares-config
 pkgver=2026.03
-pkgrel=1
+pkgrel=2
 pkgdesc="OXSystemsOS branding and configuration for Calamares"
 arch=('any')
 url="https://github.com/devluanpereira/oxsystemsos-repo"
@@ -8,18 +8,30 @@ license=('GPL-3.0-or-later')
 depends=('calamares')
 source=(
   'settings.conf'
+  'bootloader.conf'
+  'prepare-target.conf'
+  'cleanup-target.conf'
+  'services-systemd.conf'
   'unpackfsc.conf'
+  'prepare-installed-target'
+  'cleanup-installed-target'
   'branding.desc'
   'show.qml'
   'banner.png'
   'welcome.png'
   'ox-logo.svg'
 )
-sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 
 package() {
   install -Dm644 settings.conf "${pkgdir}/etc/calamares/settings.conf"
+  install -Dm644 bootloader.conf "${pkgdir}/etc/calamares/modules/bootloader.conf"
+  install -Dm644 prepare-target.conf "${pkgdir}/etc/calamares/modules/prepare-target.conf"
+  install -Dm644 cleanup-target.conf "${pkgdir}/etc/calamares/modules/cleanup-target.conf"
+  install -Dm644 services-systemd.conf "${pkgdir}/etc/calamares/modules/services-systemd.conf"
   install -Dm644 unpackfsc.conf "${pkgdir}/etc/calamares/modules/unpackfsc.conf"
+  install -Dm755 prepare-installed-target "${pkgdir}/usr/local/lib/oxsystemsos/prepare-installed-target"
+  install -Dm755 cleanup-installed-target "${pkgdir}/usr/local/lib/oxsystemsos/cleanup-installed-target"
 
   install -Dm644 branding.desc "${pkgdir}/etc/calamares/branding/oxsystemsos/branding.desc"
   install -Dm644 show.qml "${pkgdir}/etc/calamares/branding/oxsystemsos/show.qml"
